@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>it's T V Time！！</title>
+    <style>
+        /* --- 🎨 基本スタイルと暴れ回るアニメーション --- */
+        body {
+            background-color: black;
+            overflow: hidden; 
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: sans-serif;
+            color: white;
+            perspective: 1000px;
+        }
+        
+        h1 {
+            font-size: 24px;
+            text-shadow: 0 0 5px red;
+            z-index: 1000;
+        }
+
+        #startButton {
+            background-color: red;
+            color: black;
+            border: 2px solid black;
+            padding: 15px 30px;
+            font-size: 24px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            z-index: 1000;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.8);
+        }
+        #startButton:hover {
+            background-color: darkred;
+        }
+        .character-container {
+            position: absolute;
+            animation: chaosMove linear infinite; 
+            will-change: transform;
+        }
+        .character-container img {
+            width: 120px; 
+            height: auto;
+            image-rendering: pixelated; 
+        }
+
+        /* キャラクターの動きを定義 (3D回転を含む) */
+        @keyframes chaosMove {
+            0%  { 
+                transform: translate3d(var(--start-x), var(--start-y), 0) rotateZ(0deg) scale(0.5); 
+                opacity: 0.5;
+            }
+            50% { 
+                transform: translate3d(var(--mid-x), var(--mid-y), var(--mid-z)) rotateZ(360deg) scale(1.2); 
+                opacity: 1;
+            }
+            100% { 
+                transform: translate3d(var(--end-x), var(--end-y), 0) rotateZ(720deg) scale(0.8); 
+                opacity: 0.7;
+            }
+        }
+
+        /* 画面に動画を表示しないためのスタイル */
+        #backgroundVideo {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <video id="backgroundVideo" loop muted playsinline>
+        <source src="1762671233333.mp4" type="video/mp4">
+        お使いのブラウザは動画要素をサポートしていません。
+    </video>
+
+    <h1>START</h1>
+    <button id="startButton">START</button>
+
+    <script>
+        const startButton = document.getElementById('startButton');
+        const backgroundVideo = document.getElementById('backgroundVideo'); 
+        
+        // --- 🖼️ GIFファイル名 ---
+        const characterImages = [
+            '1762650404465.gif', 
+            '1762650406668.gif', 
+            '1762650408858.gif', 
+            '1762650405636.gif', 
+            '1762650407880.gif'  
+        ];
+        // ----------------------------------------
+
+        const initialCharacters = 50; 
+        const spawnRate = 5;       
+        let characterInterval;       
+
+        let animationActive = false;
+        let totalCharacters = 0; 
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        /* 🚀 キャラクター生成ロジック */
+        function spawnCharacters(count) { 
+            const bodyWidth = window.innerWidth;
+            const bodyHeight = window.innerHeight;
+
+            for (let i = 0; i < count; i++) { 
+                const charContainer = document.createElement('div');
+                charContainer.classList.add('character-container');
+
+                const img = document.createElement('img');
+                img.src = characterImages[getRandomInt(0, characterImages.length - 1)]; 
+                charContainer.appendChild(img);
+                document.body.appendChild(charContainer);
+                totalCharacters++;
+                
+                const startX = getRandomInt(-200, bodyWidth + 200);
+                const startY = getRandomInt(-200, bodyHeight + 200);
+                const midX = getRandomInt(-200, bodyWidth + 200);
+                const midY = getRandomInt(-200, bodyHeight + 200);
+                const endX = getRandomInt(-200, bodyWidth + 200);
+                const endY = getRandomInt(-200, bodyHeight + 200);
+                
+                const midZ = getRandomInt(-300, 300); 
+                
+                const duration = getRandomInt(6, 18); 
+
+                charContainer.style.setProperty('--start-x', `${startX}px`);
+                charContainer.style.setProperty('--start-y', `${startY}px`);
+                charContainer.style.setProperty('--mid-x', `${midX}px`);
+                charContainer.style.setProperty('--mid-y', `${midY}px`);
+                charContainer.style.setProperty('--mid-z', `${midZ}px`);
+                charContainer.style.setProperty('--end-x', `${endX}px`);
+                charContainer.style.setProperty('--end-y', `${endY}px`);
+                
+                charContainer.style.animationDuration = `${duration}s`;
+                charContainer.style.animationDelay = `-${getRandomInt(0, duration)}s`; 
+            }
+        }
+
+        /* 🕹️ STARTボタンのクリック処理 */
+        startButton.addEventListener('click', () => {
+            if (!animationActive) {
+                document.querySelector('h1').textContent = 'It’s T V Time！！';
+                startButton.style.display = 'none'; 
+
+                // 音楽の再生
+                backgroundVideo.muted = false; 
+                backgroundVideo.play().catch(error => {
+                    console.error("音楽の再生に失敗しました:", error);
+                    alert("音楽の自動再生がブロックされました。ブラウザの許可設定を確認してください。");
+                });
+                
+                // キャラクターの生成と間隔設定
+                spawnCharacters(initialCharacters);
+                characterInterval = setInterval(() => {
+                    spawnCharacters(spawnRate); 
+                }, 1000); 
+                
+                animationActive = true;
+            }
+        });
+
+        /* 🚫 離脱防止機能（警告文を「ERROR404」に修正） */
+        window.addEventListener('beforeunload', function(e) {
+            if (animationActive) {
+                e.preventDefault(); 
+                e.returnValue = 'ERROR404'; 
+            }
+        });
+    </script>
+</body>
+</html>
